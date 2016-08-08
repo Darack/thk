@@ -39,4 +39,7 @@ public:
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
 
 	}
+	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
+
+	}
 };
