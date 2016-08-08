@@ -90,7 +90,9 @@ public:
 
 	// constructors
 	sequence() : m_Root(0) {}
-	sequence(T t) : m_Root(t) {}
+	sequence(T t) {
+		m_Root = new Node(t);
+	}
 	sequence(const sequence& crArg) {
 		// copy constructor
 	}
