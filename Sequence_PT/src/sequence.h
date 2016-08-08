@@ -109,6 +109,9 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
 
 	}
+	sequence<T>& operator=(const sequence& crArg) {
+
+	}
 
 private:
 	Node* m_Root;
