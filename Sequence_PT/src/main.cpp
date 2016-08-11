@@ -18,10 +18,11 @@ void test(sequence<T> x,const T& a) {
 int main() {
 	sequence<char> s1('a');
 	// iterator test
-	for(sequence<char>::Iterator i = s1.begin(); i != s1.end(); ++i) {
-		cout << *i << endl;
-	}
+	//for(sequence<char>::Iterator i = s1.begin(); i != s1.end(); ++i) {
+	//	cout << *i << endl;
+	//}
 	//cout << "what is happening?" << endl;
+	cout << s1;
 
 	/*
 	sequence<char> s1,s2('c');
