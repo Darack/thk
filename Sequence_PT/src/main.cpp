@@ -46,6 +46,7 @@ int main() {
 	sequence<char> s2('b');
 	cout << "s1: " << s1 << endl;
 	cout << "s2: " << s2 << endl;
+	cout << "s1+s2: " << s1+s2 << endl;
 
 	/*
 	sequence<char> s1,s2('c');

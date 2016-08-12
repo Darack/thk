@@ -53,7 +53,6 @@ public:
 			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Right);
-
 			return *this;
 		}
 
@@ -85,14 +84,19 @@ public:
 		}
 
 		const T& operator*() {
+			//std::cout << "Testausgabe operator*: " << *(stack.top()->m_Key);
+			//std::cout << "test: " << stack.top()->m_Key << std::endl;
 			return *stack.top()->m_Key;
+		}
+
+		bool isNull() {
+			return (stack.top()->m_Key == 0);
 		}
 
 		ConstIterator operator++() {
 			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Right);
-
 			return *this;
 		}
 
@@ -130,7 +134,6 @@ public:
 			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Left);
-
 			return *this;
 		}
 
@@ -164,7 +167,6 @@ public:
 			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Left);
-
 			return *this;
 		}
 
@@ -215,8 +217,9 @@ public:
 	// constructors
 	sequence() : m_Root(0) {}
 	sequence(T arg) {
-		insert(&arg);
+		insert(new T(arg));
 	}
+	sequence(SmartNode* arg) : m_Root(arg) {}
 
 	// copy constructor
 	sequence(const sequence& crArg) : m_Root(crArg.m_Root) {
@@ -245,14 +248,18 @@ public:
 
 	// operators
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(crArg1.m_Root, crArg2.m_Root);
-		increaseCount();
+		SmartNode* sn = new SmartNode(crArg1.m_Root, crArg2.m_Root);
+		sequence<T> res(sn);
+		res.increaseCount();
 		return res;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
 		for(typename sequence<T>::ConstIterator i = crArg.cbegin(); i != crArg.cend(); ++i) {
-			os << *i << " ";
+			//std::cout << "ausgabe!" << std::endl;
+			if(!i.isNull()) {
+				os << *i << " ";
+			}
 		}
 		os << std::endl;
 		return os;
