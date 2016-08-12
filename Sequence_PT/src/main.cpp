@@ -15,14 +15,37 @@ void test(sequence<T> x,const T& a) {
 	cout << x << endl;
 }
 
+class A {
+public:
+	A() {
+		cout << "A+" << endl;
+	}
+
+	A(const A& crArg) {
+		cout << "A_copycons" << endl;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const A& crArg) {
+		os << "ich bin ein A" << endl;
+		return os;
+	}
+};
+
 int main() {
+	//sequence<char> s1('a');
+	//cout << s1;
+
+	//A a;
+	//sequence<A> s2(a);
+	//cout << *(s2.getRoot()->m_puiCnt) << endl;
+	//cout << a;
+	//sequence<A> s3(s2);
+	//cout << *(s2.getRoot()->m_puiCnt) << endl;
+
 	sequence<char> s1('a');
-	// iterator test
-	//for(sequence<char>::Iterator i = s1.begin(); i != s1.end(); ++i) {
-	//	cout << *i << endl;
-	//}
-	//cout << "what is happening?" << endl;
-	cout << s1;
+	sequence<char> s2('b');
+	cout << "s1: " << s1 << endl;
+	cout << "s2: " << s2 << endl;
 
 	/*
 	sequence<char> s1,s2('c');

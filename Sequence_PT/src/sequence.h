@@ -4,29 +4,39 @@
 template<class T>
 class sequence {
 private:
-    struct Node {
-        Node(T key) : m_Key(key), m_Left(0), m_Right(0) {}
+    struct SmartNode {
+        SmartNode(T* key) : m_Key(key), m_Left(0), m_Right(0), m_puiCnt(new unsigned(1)) {}
+        SmartNode(SmartNode* left, SmartNode* right) : m_Key(0), m_Left(left), m_Right(right), m_puiCnt(new unsigned(0)) {}
+
+        //SmartNode(const SmartNode& crArg) : m_Key(crArg.m_Key), m_Left(crArg.m_Left), m_Right(crArg.m_Right), m_puiCnt(crArg.m_puiCnt) {
+        //	++*m_puiCnt;
+        //}
 
         // todo reference counting
-        ~Node() {
+        ~SmartNode() {
             delete m_Left;
             delete m_Right;
         }
 
-        T& getKey() {
+        T& operator*() const {
+        	return *m_Key;
+        }
+
+        T* operator->() const {
             return m_Key;
         }
 
-        T m_Key;
-        Node* m_Left;
-        Node* m_Right;
+        T* m_Key;
+        SmartNode* m_Left;
+        SmartNode* m_Right;
+        unsigned* m_puiCnt;
     };
 
 public:
 	// iterators
 	class Iterator {
 	public:
-		Iterator(Node* elem) : stack() {
+		Iterator(SmartNode* elem) : stack() {
 			buildStack(elem);
 		}
 
@@ -35,19 +45,24 @@ public:
 		}
 
 		T& operator*() {
-			return stack.top()->m_Key;
+			return *stack.top()->m_Key;
 		}
 
+
 		Iterator operator++() {
-			Node* tmp = stack.top();
+			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Right);
 
 			return *this;
 		}
 
+		SmartNode* getNode() {
+			return stack.top();
+		}
+
 	private:
-		void buildStack(Node* elem) {
+		void buildStack(SmartNode* elem) {
 			while(elem) {
 				stack.push(elem);
 				elem = elem->m_Left;
@@ -55,12 +70,13 @@ public:
 		}
 
 		// members
-		std::stack<Node*> stack;
+		std::stack<SmartNode*> stack;
 	};
 
+	// TODO andere iteratoren ändern
 	class ConstIterator {
 	public:
-		ConstIterator(Node* elem) : stack() {
+		ConstIterator(SmartNode* elem) : stack() {
 			buildStack(elem);
 		}
 
@@ -69,19 +85,23 @@ public:
 		}
 
 		const T& operator*() {
-			return stack.top()->m_Key;
+			return *stack.top()->m_Key;
 		}
 
 		ConstIterator operator++() {
-			Node* tmp = stack.top();
+			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Right);
 
 			return *this;
 		}
 
+		SmartNode* getNode() {
+			return stack.top();
+		}
+
 	private:
-		void buildStack(Node* elem) {
+		void buildStack(SmartNode* elem) {
 			while(elem) {
 				stack.push(elem);
 				elem = elem->m_Left;
@@ -89,12 +109,12 @@ public:
 		}
 
 		// members
-		std::stack<Node*> stack;
+		std::stack<SmartNode*> stack;
 	};
 
 	class ReversIterator {
 	public:
-		ReversIterator(Node* elem) : stack() {
+		ReversIterator(SmartNode* elem) : stack() {
 			buildStack(elem);
 		}
 
@@ -107,7 +127,7 @@ public:
 		}
 
 		ReversIterator operator++() {
-			Node* tmp = stack.top();
+			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Left);
 
@@ -115,7 +135,7 @@ public:
 		}
 
 	private:
-		void buildStack(Node* elem) {
+		void buildStack(SmartNode* elem) {
 			while(elem) {
 				stack.push(elem);
 				elem = elem->m_Right;
@@ -123,12 +143,12 @@ public:
 		}
 
 		// members
-		std::stack<Node*> stack;
+		std::stack<SmartNode*> stack;
 	};
 
 	class ConstReversIterator {
 	public:
-		ConstReversIterator(Node* elem) : stack() {
+		ConstReversIterator(SmartNode* elem) : stack() {
 			buildStack(elem);
 		}
 
@@ -141,7 +161,7 @@ public:
 		}
 
 		ConstReversIterator operator++() {
-			Node* tmp = stack.top();
+			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->m_Left);
 
@@ -149,7 +169,7 @@ public:
 		}
 
 	private:
-		void buildStack(Node* elem) {
+		void buildStack(SmartNode* elem) {
 			while(elem) {
 				stack.push(elem);
 				elem = elem->m_Right;
@@ -157,7 +177,7 @@ public:
 		}
 
 		// members
-		std::stack<Node*> stack;
+		std::stack<SmartNode*> stack;
 	};
 
 	Iterator begin() {
@@ -195,28 +215,43 @@ public:
 	// constructors
 	sequence() : m_Root(0) {}
 	sequence(T arg) {
-		//m_Root = new Node(arg);
-		insert(arg);
+		insert(&arg);
 	}
-	sequence(const sequence& crArg) {
-		// copy constructor
+
+	// copy constructor
+	sequence(const sequence& crArg) : m_Root(crArg.m_Root) {
+		increaseCount();
 	}
+
 	~sequence() {
 
 	}
 
 	// methods
-	void insert(T arg) {
-		m_Root = new Node(arg);
+	void insert(T* arg) {
+		m_Root = new SmartNode(arg);
+	}
+
+	void increaseCount() {
+		for(typename sequence<T>::ConstIterator i = cbegin(); i != cend(); ++i) {
+			++(*i.getNode()->m_puiCnt);
+		}
+	}
+
+	// todo remove after test
+	SmartNode* getRoot() {
+		return m_Root;
 	}
 
 	// operators
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
-
+		sequence<T> res(crArg1.m_Root, crArg2.m_Root);
+		increaseCount();
+		return res;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
-		for(sequence<T>::ConstIterator i = crArg.cbegin(); i != crArg.cend(); ++i) {
+		for(typename sequence<T>::ConstIterator i = crArg.cbegin(); i != crArg.cend(); ++i) {
 			os << *i << " ";
 		}
 		os << std::endl;
@@ -228,5 +263,5 @@ public:
 	}
 
 private:
-	Node* m_Root;
+	SmartNode* m_Root;
 };
