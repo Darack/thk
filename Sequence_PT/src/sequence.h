@@ -5,50 +5,52 @@ template<class T>
 class sequence {
 private:
     struct SmartNode {
-        SmartNode() : m_puiCnt(new unsigned(0)) {}
+        SmartNode(SmartNode* previous) : m_previous(previous), m_puiCnt(new unsigned(0)) {}
 
         virtual ~SmartNode() {
             delete m_puiCnt;
         }
 
     public:
-        virtual SmartNode* getLeft() = 0;
-        virtual SmartNode* getRight() = 0;
-        virtual T* getKey() = 0;
+        virtual SmartNode* getLeft() {
+        	return 0;
+        }
+        virtual SmartNode* getRight() {
+        	return 0;
+        }
+        virtual T* getKey() {
+        	return 0;
+        }
+        virtual SmartNode& operator=(const T& crArg) {}
         unsigned& getCounter() {
         	return *m_puiCnt;
         }
     private:
+        SmartNode* m_previous;
         unsigned* m_puiCnt;
     };
 
     struct LeafNode : SmartNode {
 
-    	LeafNode(T* key) : SmartNode(), m_Key(key) {}
+    	LeafNode(SmartNode* previous, T* key) : SmartNode(previous), m_Key(key) {}
 
     	~LeafNode() {
     		delete m_Key;
     	}
 
-        SmartNode* getLeft() {
-        	return 0;
-        }
-        SmartNode* getRight() {
-        	return 0;
-        }
-        // TODO const version?
         T* getKey() {
         	return m_Key;
         }
 
-        // TODO change into 2x2 (const and nonconst)?
-        // TODO not needed?
-        T& operator*() const {
-        	return *m_Key;
-        }
-
-        T* operator->() const {
-            return m_Key;
+        SmartNode& operator=(const T& crArg) {
+        	if (*m_Key!=crArg) {
+        		if (SmartNode::getCounter() == 0) {
+        			*m_Key = crArg;
+        		} else {
+        			//???
+        		}
+        	}
+        	return *this;
         }
 
         T* m_Key;
@@ -56,10 +58,10 @@ private:
 
     struct InnerNode : SmartNode {
 
-    	InnerNode(SmartNode* left, SmartNode* right) : SmartNode(), m_Left(left), m_Right(right) {}
-    	InnerNode(SmartNode* left, T* key) : SmartNode(), m_Left(left), m_Right(new LeafNode(key)) {}
-    	InnerNode(T* key, SmartNode* right) : SmartNode(), m_Left(new LeafNode(key)), m_Right(right) {}
-    	InnerNode(T* key) : SmartNode(), m_Left(new LeafNode(key)), m_Right(0) {}
+    	InnerNode(SmartNode* previous, SmartNode* left, SmartNode* right) : SmartNode(previous), m_Left(left), m_Right(right) {}
+    	InnerNode(SmartNode* previous, SmartNode* left, T* key) : SmartNode(previous), m_Left(left), m_Right(new LeafNode(previous, key)) {}
+    	InnerNode(SmartNode* previous, T* key, SmartNode* right) : SmartNode(previous), m_Left(new LeafNode(key)), m_Right(right) {}
+    	InnerNode(SmartNode* previous, T* key) : SmartNode(previous), m_Left(new LeafNode(previous, key)), m_Right(0) {}
 
     	~InnerNode() {}
 
@@ -68,9 +70,6 @@ private:
         }
         SmartNode* getRight() {
         	return m_Right;
-        }
-        T* getKey() {
-        	return 0;
         }
 
         SmartNode* m_Left;
@@ -87,12 +86,14 @@ private:
 		friend bool operator!=(const Z& crI1, const Z& crI2) {
 			return crI1.stack != crI2.stack;
 		}
-
-		virtual Iter operator++() {
+    	Iter operator++() {
 			SmartNode* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->getRight());
 			return *this;
+		}
+		SmartNode& operator*() {
+			return getNextLeaf();
 		}
 	protected:
 		virtual void buildStack(SmartNode* elem) {
@@ -101,13 +102,44 @@ private:
 				elem = elem->getLeft();
 			}
 		}
-
 		// TODO infinite loop?
-		virtual T& getNextLeaf() {
+		SmartNode& getNextLeaf() {
 			while (stack.top()->getKey() == 0) {
 				operator++();
 			}
-			return *stack.top()->getKey();
+			return *stack.top();
+		}
+
+		std::stack<SmartNode*> stack;
+    };
+
+    class RevIter {
+    protected:
+    	RevIter(SmartNode* elem) : stack() {
+    		buildStack(elem);
+    	}
+    public:
+		RevIter operator++() {
+			SmartNode* tmp = stack.top();
+			stack.pop();
+			buildStack(tmp->getLeft());
+			return *this;
+		}
+		SmartNode& operator*() {
+			return getNextLeaf();
+		}
+	protected:
+		virtual void buildStack(SmartNode* elem) {
+			while (elem) {
+				stack.push(elem);
+				elem = elem->getRight();
+			}
+		}
+		SmartNode& getNextLeaf() {
+			while (stack.top()->getKey() == 0) {
+				operator++();
+			}
+			return *stack.top();
 		}
 
 		std::stack<SmartNode*> stack;
@@ -139,98 +171,38 @@ public:
 	// public iterators
 	class Iterator : public Iter {
 	public:
-		Iterator(SmartNode* elem) : Iter(elem), m_Root(elem) {}
+		Iterator(SmartNode* elem) : Iter(elem) {}
 
-		T& operator*() {
+		SmartNode& operator*() {
 			return Iter::getNextLeaf();
 		}
-	private:
-		SmartNode* m_Root;
 	};
 
 	class ConstIterator : public Iter {
 	public:
 		ConstIterator(SmartNode* elem) : Iter(elem) {}
 
-		const T& operator*() {
+		SmartNode& operator*() {
 			return Iter::getNextLeaf();
 		}
 	};
 
-	class ReversIterator {
+	class ReversIterator : public RevIter {
 	public:
-		ReversIterator(SmartNode* elem) : stack() {
-			buildStack(elem);
-		}
+		ReversIterator(SmartNode* elem) : RevIter(elem) {}
 
-		friend bool operator!=(const ReversIterator& crI1, const ReversIterator crI2) {
-			return crI1.stack != crI2.stack;
+		SmartNode& operator*() {
+			return RevIter::getNextLeaf();
 		}
-
-		T& operator*() {
-			return getNextLeaf();
-		}
-
-		ReversIterator operator++() {
-			SmartNode* tmp = stack.top();
-			stack.pop();
-			buildStack(tmp->getLeft());
-			return *this;
-		}
-	protected:
-		void buildStack(SmartNode* elem) {
-			while (elem) {
-				stack.push(elem);
-				elem = elem->getRight();
-			}
-		}
-
-		T& getNextLeaf() {
-			while (stack.top()->getKey() == 0) {
-				operator++();
-			}
-			return *stack.top()->getKey();
-		}
-
-		std::stack<SmartNode*> stack;
 	};
 
-	class ConstReversIterator {
+	class ConstReversIterator : public RevIter {
 	public:
-		ConstReversIterator(SmartNode* elem) : stack() {
-			buildStack(elem);
-		}
+		ConstReversIterator(SmartNode* elem) : RevIter(elem) {}
 
-		friend bool operator!=(const ConstReversIterator& crI1, const ConstReversIterator crI2) {
-			return crI1.stack != crI2.stack;
+		SmartNode& operator*() {
+			return RevIter::getNextLeaf();
 		}
-
-		const T& operator*() {
-			return getNextLeaf();
-		}
-
-		ConstReversIterator operator++() {
-			SmartNode* tmp = stack.top();
-			stack.pop();
-			buildStack(tmp->getLeft());
-			return *this;
-		}
-	protected:
-		void buildStack(SmartNode* elem) {
-			while (elem) {
-				stack.push(elem);
-				elem = elem->getRight();
-			}
-		}
-
-		T& getNextLeaf() {
-			while (stack.top()->getKey() == 0) {
-				operator++();
-			}
-			return *stack.top()->getKey();
-		}
-
-		std::stack<SmartNode*> stack;
 	};
 
 	Iterator begin() {
@@ -270,7 +242,7 @@ public:
 	sequence() : m_Root(0) {}
 	sequence(T arg) {
 		//insert(new T(arg));
-		m_Root = new LeafNode(new T(arg));
+		m_Root = new LeafNode(0, new T(arg));
 		increaseCounter();
 	}
 	// copy constructor
@@ -323,23 +295,23 @@ private:
 	// operators
 public:
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new InnerNode(crArg1.m_Root, crArg2.m_Root));
+		sequence<T> res(new InnerNode(0, crArg1.m_Root, crArg2.m_Root));
 		return res;
 	}
 
 	friend sequence<T> operator+(const sequence<T>& crArg1, T crArg2) {
-		sequence<T> res(new InnerNode(crArg1.m_Root, new T(crArg2)));
+		sequence<T> res(new InnerNode(0, crArg1.m_Root, new T(crArg2)));
 		return res;
 	}
 
 	friend sequence<T> operator+(T crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new InnerNode(new T(crArg1), crArg2.m_Root));
+		sequence<T> res(new InnerNode(0, new T(crArg1), crArg2.m_Root));
 		return res;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
 		for(typename sequence<T>::ConstIterator iter = crArg.cbegin(); iter != crArg.cend(); ++iter) {
-			os << *iter << " ";
+			os << *((*iter).getKey()) << " ";
 		}
 		os << std::endl;
 		return os;

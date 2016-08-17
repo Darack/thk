@@ -102,14 +102,12 @@ int main() {
 	cout << endl;
 	sequence<char> t5 = t2 + t1;
 	cout << "output" << endl;
-	for (sequence<char>::Iterator it = t5.begin(); it!=t5.end(); ++it) {
-		cout << *it << endl;
-	}
+	cout << t5 << endl;
 	cout << endl;
 	for (sequence<char>::Iterator it = t5.begin(); it!=t5.end(); ++it) {
 		*it = 'a';
-		cout << *it << endl;
 	}
+	cout << t5 << endl;
 
 	// TODO regressionstest
 	// TODO inhalt verändern, kopien anlegen bei ref > 1
