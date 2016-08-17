@@ -100,7 +100,14 @@ int main() {
 	s2.printCounter();
 
 	cout << endl;
-	for (sequence<char>::ConstIterator it = t2.cbegin(); it!=t2.cend(); ++it) {
+	sequence<char> t5 = t2 + t1;
+	cout << "output" << endl;
+	for (sequence<char>::Iterator it = t5.begin(); it!=t5.end(); ++it) {
+		cout << *it << endl;
+	}
+	cout << endl;
+	for (sequence<char>::Iterator it = t5.begin(); it!=t5.end(); ++it) {
+		*it = 'a';
 		cout << *it << endl;
 	}
 
