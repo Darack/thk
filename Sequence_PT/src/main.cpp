@@ -99,6 +99,12 @@ int main() {
 	cout << "s2 counter: ";
 	s2.printCounter();
 
+	cout << endl;
+	for (sequence<char>::ConstIterator it = t2.cbegin(); it!=t2.cend(); ++it) {
+		cout << *it << endl;
+	}
+
+	// TODO regressionstest
 	// TODO inhalt verändern, kopien anlegen bei ref > 1
 
 	/*
