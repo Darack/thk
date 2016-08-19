@@ -5,7 +5,7 @@ template<class T>
 class sequence {
 private:
     struct SmartNode {
-        SmartNode(SmartNode* previous) : m_previous(previous), m_puiCnt(new unsigned(0)) {}
+        SmartNode() : m_puiCnt(new unsigned(0)) {}
 
         virtual ~SmartNode() {
             delete m_puiCnt;
@@ -26,13 +26,12 @@ private:
         	return *m_puiCnt;
         }
     private:
-        SmartNode* m_previous;
         unsigned* m_puiCnt;
     };
 
     struct LeafNode : SmartNode {
 
-    	LeafNode(SmartNode* previous, T* key) : SmartNode(previous), m_Key(key) {}
+    	LeafNode(T* key) : m_Key(key) {}
 
     	~LeafNode() {
     		delete m_Key;
@@ -58,10 +57,10 @@ private:
 
     struct InnerNode : SmartNode {
 
-    	InnerNode(SmartNode* previous, SmartNode* left, SmartNode* right) : SmartNode(previous), m_Left(left), m_Right(right) {}
-    	InnerNode(SmartNode* previous, SmartNode* left, T* key) : SmartNode(previous), m_Left(left), m_Right(new LeafNode(previous, key)) {}
-    	InnerNode(SmartNode* previous, T* key, SmartNode* right) : SmartNode(previous), m_Left(new LeafNode(key)), m_Right(right) {}
-    	InnerNode(SmartNode* previous, T* key) : SmartNode(previous), m_Left(new LeafNode(previous, key)), m_Right(0) {}
+    	InnerNode(SmartNode* left, SmartNode* right) : m_Left(left), m_Right(right) {}
+    	InnerNode(SmartNode* left, T* key) : m_Left(left), m_Right(new LeafNode(key)) {}
+    	InnerNode(T* key, SmartNode* right) : m_Left(new LeafNode(key)), m_Right(right) {}
+    	InnerNode(T* key) : m_Left(new LeafNode(key)), m_Right(0) {}
 
     	~InnerNode() {}
 
@@ -75,6 +74,51 @@ private:
         SmartNode* m_Left;
         SmartNode* m_Right;
     };
+
+    class TestIter {
+    	TestIter(SmartNode* elem) : stack() {
+    		buildStack(elem);
+    	}
+
+    	friend bool operator!=(const TestIter& crI1, const TestIter& crI2) {
+    		return crI1.stack!=crI2.stack;
+    	}
+
+    	TestIter operator++() {
+    		if (!buildStack(stack.top()->getRight())) {
+				stack.pop();
+			}
+			return *this;
+    	}
+
+    	T& operator*() {
+    		//return current->getKey();
+    	}
+
+    private:
+    	bool buildStack(SmartNode* elem) {
+    		if (!elem) {
+    			return false;
+    		}
+    		while(elem) {
+    			stack.push(elem);
+    			//current = elem->getLeft();
+    			elem = elem->getLeft();
+    		}
+    		return true;
+    	}
+
+    	std::stack<SmartNode*> stack;
+    	//SmartNode* current;
+    };
+
+
+
+    /*______
+     * _____
+     * SPACE
+     * _____
+     */
 
     class Iter {
     protected:
@@ -242,7 +286,7 @@ public:
 	sequence() : m_Root(0) {}
 	sequence(T arg) {
 		//insert(new T(arg));
-		m_Root = new LeafNode(0, new T(arg));
+		m_Root = new LeafNode(new T(arg));
 		increaseCounter();
 	}
 	// copy constructor
@@ -295,17 +339,17 @@ private:
 	// operators
 public:
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new InnerNode(0, crArg1.m_Root, crArg2.m_Root));
+		sequence<T> res(new InnerNode(crArg1.m_Root, crArg2.m_Root));
 		return res;
 	}
 
 	friend sequence<T> operator+(const sequence<T>& crArg1, T crArg2) {
-		sequence<T> res(new InnerNode(0, crArg1.m_Root, new T(crArg2)));
+		sequence<T> res(new InnerNode(crArg1.m_Root, new T(crArg2)));
 		return res;
 	}
 
 	friend sequence<T> operator+(T crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new InnerNode(0, new T(crArg1), crArg2.m_Root));
+		sequence<T> res(new InnerNode(new T(crArg1), crArg2.m_Root));
 		return res;
 	}
 
