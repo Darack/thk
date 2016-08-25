@@ -32,87 +32,6 @@ public:
 };
 
 int main() {
-	//sequence<char> s1('a');
-	//cout << s1;
-
-	//A a;
-	//sequence<A> s2(a);
-	//cout << *(s2.getRoot()->m_puiCnt) << endl;
-	//cout << a;
-	//sequence<A> s3(s2);
-	//cout << *(s2.getRoot()->m_puiCnt) << endl;
-
-	sequence<char> s1('a');
-	sequence<char> s2('b');
-	cout << "s1: " << s1;
-	cout << "s1 counter: ";
-	s1.printCounter();
-	cout << endl;
-
-	cout << "s2: " << s2;
-	cout << "s2 counter: ";
-	s2.printCounter();
-	cout << endl;
-
-	sequence<char> t1 = s1+s2;
-	cout << "t1=s1+s2: " << t1;
-	cout << "t1 counter: ";
-	t1.printCounter();
-	cout << endl;
-
-	sequence<char> s3 = 'e';
-	sequence<char> t2 = s3+'f';
-	cout << "t2=s3+'f': " << t2;
-	cout << "t2 counter: ";
-	t2.printCounter();
-	cout << endl;
-
-	cout << "-------------------------" << endl;
-
-	{
-		sequence<char> t3 = t1+t1;
-		cout << "t3=t1+t1: " << t3;
-		cout << "t3 counter: ";
-		t3.printCounter();
-		cout << endl;
-
-//		sequence<char> t4 = t1+t2;
-//		cout << "t4=t1+t2: " << t4;
-//		cout << "t4 counter: ";
-//		t4.printCounter();
-//		cout << endl;
-
-	}
-
-	cout << "t1=s1+s2: " << t1;
-	cout << "t1 counter: ";
-	t1.printCounter();
-	cout << endl;
-
-	cout << "t2=s3+'f': " << t2;
-	cout << "t2 counter: ";
-	t2.printCounter();
-	cout << endl;
-
-	cout << "s1 counter: ";
-	s1.printCounter();
-	cout << "s2 counter: ";
-	s2.printCounter();
-
-	cout << endl;
-	sequence<char> t5 = t2 + t1;
-	cout << "output" << endl;
-	cout << t5 << endl;
-	cout << endl;
-	for (sequence<char>::Iterator it = t5.begin(); it!=t5.end(); ++it) {
-		*it = 'a';
-	}
-	cout << t5 << endl;
-
-	// TODO regressionstest
-	// TODO inhalt verändern, kopien anlegen bei ref > 1
-
-	/*
 	sequence<char> s1,s2('c');
 
 	// hier dürfen noch keine Kopien der Teilsequenzen erzeugt werden,
@@ -122,6 +41,7 @@ int main() {
 		s1 = s1 + (char)ui;
 	}
 
+	/*
 	// intern keine Kopie erzeugen
 	cout << (s2+s2) << endl;
 
