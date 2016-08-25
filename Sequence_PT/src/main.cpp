@@ -10,7 +10,7 @@ void test(sequence<T> x,const T& a) {
 	//sondern nur Verweise mit Referenzzählungen
 	cout << x << endl;
 	typename sequence<T>::Iterator i = x.begin();
-	i++;
+	++i;
 	*i = a; // jetzt muss eine Kopie für x erzeugt werden
 	cout << x << endl;
 }
@@ -41,12 +41,11 @@ int main() {
 		s1 = s1 + (char)ui;
 	}
 
-	/*
 	// intern keine Kopie erzeugen
 	cout << (s2+s2) << endl;
 
 	sequence<char>::Iterator i = s1.begin();
-	i++;
+	++i;
 	// keine Kopie von s1 erzeugen, da alle Elemente
 	// ausschließlich von s1 benutzt werden (erkennbar
 	// durch Referenzzählung)
@@ -61,12 +60,24 @@ int main() {
 	// jetzt muss eine eigenständige Kopie für s2 erzeugt
 	// werden, da die Elemente von s2 und s1 verwendet
 	// werden
-	*i2 =  'X';
+	*i2 = 'M';
+	cout << "new stuff here... " << endl;
+	cout << s1 << endl;
+	s1.printCounter();
+	cout << s2 << endl;
+	s2.printCounter();
 
+	/*
 	cout << s2 << endl;
 	test(s2,'?');
 	// muss die gleiche Ausgabe wie 2 Zeilen
 	// zuvor erzeugen
 	cout << s2 << endl;
+
+	cout << "new stuff here... " << endl;
+	sequence<char> t5;
+	for (sequence<char>::ConstIterator iter = t5.cbegin(); iter!=t5.cend(); ++iter) {
+		cout << *iter << endl;
+	}
 	*/
 }

@@ -48,9 +48,7 @@ private:
 			return m_Key;
 		}
 		void setKey(const T& key) {
-			if (key) {
-				*m_Key = key;
-			}
+			*m_Key = key;
 		}
 
 	private:
@@ -86,45 +84,49 @@ private:
 	class Dummy {
 		friend class sequence;
     public:
-    	Dummy(sequence<T>* sequence, Node* node) : seq(sequence), node2Edit(node) {}
+    	Dummy(sequence<T>* seq, Node* ch) : ptrSeq(seq), chNode(ch) {}
     	~Dummy() {}
 
     	friend std::ostream& operator<<(std::ostream& os, const Dummy& crArg) {
-    		os << Dummy::node2Edit->getKey();
+    		os << *Dummy::chNode->getKey();
     		return os;
     	}
+    	//TODO remove cout
     	Dummy& operator=(const T& crArg) {
+    		std::cout << (chNode->getKey() == 0 ? "inner" : "leaf") << std::endl;
     		// no self assignment
-    		if (*node2Edit->getKey() != crArg) {
-    			if (node2Edit->getCnt() > 1) {
-    				sequence<T> tmp(*seq);
-    				seq->removeNodes();
-    				tmp.copyNodes(seq);
+    		if (*chNode->getKey() != crArg) {
+    			if (chNode->getCnt() > 1) {
+    				sequence<T> tmp(*ptrSeq);
+    				ptrSeq->removeNodes();
+    				tmp.copyNodes(ptrSeq);
     				// change copied node
-    				for (sequence<T>::InnerIterator iter = (*seq).ibegin(); iter!=(*seq).iend(); ++iter) {
-    					if (**iter == *node2Edit) {
-    						std::cout << "node found: " << (*iter)->getKey() << std::endl;
+    				std::cout << "copied node change" << std::endl;
+    				// TODO change inneriterator to iterator
+    				for (sequence<T>::InnerIterator iter = (*ptrSeq).ibegin(); iter!=(*ptrSeq).iend(); ++iter) {
+    					// TODO problem: changes more than one node with same key as node2Edit
+    					if ( **iter == *chNode) {
     						(*iter)->setKey(crArg);
     					}
     				}
     			} else {
     				// change node directly
-    				std::cout << "no self assignment?" << std::endl;
-    				node2Edit->setKey(crArg);
+    				std::cout << "direct node change" << std::endl;
+    				chNode->setKey(crArg);
     			}
     		}
     		return *this;
     	}
 
     private:
-    	sequence<T>* seq;
-    	Node* node2Edit;
-    };
+    	sequence<T>* ptrSeq;
+    	Node* chNode;
+	};
 
 	class InnerIterator {
     	friend class sequence;
 	private:
-    	InnerIterator(Node* elem) : stack() {
+    	InnerIterator(Node* elem) : stack(), iLeaf(0) {
     		buildStack(elem);
     	}
 
@@ -132,6 +134,9 @@ private:
     		Node* tmp = stack.top();
 			stack.pop();
 			buildStack(tmp->getRight());
+			if (!stack.empty() && stack.top()->getKey() != 0) {
+				++iLeaf;
+			}
 			return *this;
     	}
     	Node* operator*() {
@@ -148,6 +153,7 @@ private:
     		}
     	}
     	std::stack<Node*> stack;
+    	unsigned iLeaf;
 	};
 
 	InnerIterator ibegin() {
@@ -168,11 +174,15 @@ public:
     		return crI1.stack!=crI2.stack;
     	}
     	Iterator operator++() {
-    		Node* tmp = stack.top();
-			stack.pop();
-			buildStack(tmp->getRight());
+    		// TODO check if stack.isEmpty()?
+    		do {
+				Node* tmp = stack.top();
+				stack.pop();
+				buildStack(tmp->getRight());
+    		}
+    		while (!stack.empty() && stack.top()->getKey() == 0);
 
-			// TODO
+			// TODO remove or complete
 //    		Node* tmp = stack.top();
 //    		buildStack(tmp->getRight());
 //    		std::cout << "stack.size()" << stack.size() << std::endl;
@@ -193,13 +203,8 @@ public:
     	Dummy operator*() {
     		return Dummy(seq, stack.top());
     	}
-
-	protected:
-    	Node* getNextLeaf() {
-			while (stack.top() && stack.top()->getKey() == 0) {
-				operator++();
-			}
-			return stack.top();
+    	Node* getNode() {
+    		return stack.top();
     	}
 
 	private:
@@ -224,7 +229,7 @@ public:
     		return crI1.stack!=crI2.stack;
     	}
 		const T& operator*() {
-			return *Iterator::getNextLeaf()->getKey();
+			return *Iterator::stack.top()->getKey();
 		}
 	};
 
@@ -237,21 +242,16 @@ public:
     		return crI1.stack!=crI2.stack;
     	}
     	ReverseIterator operator++() {
-    		Node* tmp = stack.top();
-			stack.pop();
-			buildStack(tmp->getLeft());
+    		do {
+				Node* tmp = stack.top();
+				stack.pop();
+				buildStack(tmp->getLeft());
+    		}
+    		while (!stack.empty() && stack.top()->getKey() == 0);
 			return *this;
     	}
     	Dummy operator*() {
     		return Dummy(seq, stack.top());
-    	}
-
-	protected:
-    	Node* getNextLeaf() {
-			while (stack.top() && stack.top()->getKey() == 0) {
-				operator++();
-			}
-			return stack.top();
     	}
 
 	private:
@@ -276,7 +276,7 @@ public:
     		return crI1.stack!=crI2.stack;
     	}
 		const T& operator*() {
-			return *Iterator::getNextLeaf()->getKey();
+			return *ReverseIterator::stack.top()->getKey();
 		}
 	};
 
@@ -308,7 +308,7 @@ public:
 	// constructors
 public:
 	sequence() : m_Root(0) {}
-	sequence(T arg) {
+	sequence(const T arg) {
 		m_Root = new Leaf(new T(arg));
 		increaseCounter();
 	}
@@ -326,6 +326,10 @@ private:
 
 	// methods
 public:
+	bool isEmpty() const {
+		return m_Root == 0;
+	}
+
 	// TODO remove after tests
 	void printCounter() {
 		for(typename sequence<T>::InnerIterator iter = ibegin(); iter != iend(); ++iter) {
@@ -336,7 +340,7 @@ public:
 	}
 
 private:
-	// TODO iterativ
+	// TODO iterativ?
 	void copyNodes(sequence<T>* seq) {
 //		std::cout << "copyNodes active!" << std::endl;
 		seq->m_Root = copyNode(this->m_Root);
@@ -361,7 +365,7 @@ private:
 	}
 	void removeNodes() {
 		for(typename sequence<T>::InnerIterator iter = ibegin(); iter != iend();) {
-			// decrease counter
+			// decrease counter first
 			if (--(*iter)->getCnt() == 0) {
 				Node* node2Delete = *iter;
 				++iter;
@@ -375,23 +379,18 @@ private:
 	// operators
 public:
 	friend sequence<T> operator+(const sequence<T>& crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new Inner(crArg1.m_Root, crArg2.m_Root));
-		return res;
+		return sequence<T>(new Inner(crArg1.m_Root, crArg2.m_Root));
 	}
 	friend sequence<T> operator+(const sequence<T>& crArg1, const T& crArg2) {
-		sequence<T> res(new Inner(crArg1.m_Root, new T(crArg2)));
-		return res;
+		return crArg1.isEmpty() ? sequence<T>(crArg2) : sequence<T>(new Inner(crArg1.m_Root, new T(crArg2)));
 	}
 	friend sequence<T> operator+(const T& crArg1, const sequence<T>& crArg2) {
-		sequence<T> res(new Inner(new T(crArg1), crArg2.m_Root));
-		return res;
+		return crArg2.isEmpty() ? sequence<T>(crArg1) : sequence<T>(new Inner(new T(crArg1), crArg2.m_Root));
 	}
 	friend std::ostream& operator<<(std::ostream& os, const sequence<T>& crArg) {
 		for(typename sequence<T>::ConstIterator iter = crArg.cbegin(); iter != crArg.cend(); ++iter) {
 			os << *iter << " ";
 		}
-		// TODO remove?
-//		os << std::endl;
 		return os;
 	}
 
