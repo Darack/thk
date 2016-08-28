@@ -60,14 +60,10 @@ int main() {
 	// jetzt muss eine eigenständige Kopie für s2 erzeugt
 	// werden, da die Elemente von s2 und s1 verwendet
 	// werden
-	*i2 = 'M';
-	cout << "new stuff here... " << endl;
+	*i2 = 'X';
 	cout << s1 << endl;
-	s1.printCounter();
 	cout << s2 << endl;
-	s2.printCounter();
 
-	/*
 	cout << s2 << endl;
 	test(s2,'?');
 	// muss die gleiche Ausgabe wie 2 Zeilen
@@ -75,9 +71,9 @@ int main() {
 	cout << s2 << endl;
 
 	cout << "new stuff here... " << endl;
-	sequence<char> t5;
-	for (sequence<char>::ConstIterator iter = t5.cbegin(); iter!=t5.cend(); ++iter) {
-		cout << *iter << endl;
+	sequence<char> t5 = s2 + s1;
+	for (sequence<char>::Iterator iter = t5.begin(); iter!=t5.end(); ++iter) {
+		*iter = 'o';
 	}
-	*/
+	cout << t5 << endl;
 }

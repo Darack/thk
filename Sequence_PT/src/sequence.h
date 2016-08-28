@@ -84,34 +84,30 @@ private:
 	class Dummy {
 		friend class sequence;
     public:
-    	Dummy(sequence<T>* seq, Node* ch) : ptrSeq(seq), chNode(ch) {}
+    	Dummy(sequence<T>* seq, Node* ch, unsigned leaf) : ptrSeq(seq), chNode(ch), ui_leafNo(leaf) {}
     	~Dummy() {}
 
     	friend std::ostream& operator<<(std::ostream& os, const Dummy& crArg) {
     		os << *Dummy::chNode->getKey();
     		return os;
     	}
-    	//TODO remove cout
+
     	Dummy& operator=(const T& crArg) {
-    		std::cout << (chNode->getKey() == 0 ? "inner" : "leaf") << std::endl;
     		// no self assignment
     		if (*chNode->getKey() != crArg) {
     			if (chNode->getCnt() > 1) {
     				sequence<T> tmp(*ptrSeq);
     				ptrSeq->removeNodes();
     				tmp.copyNodes(ptrSeq);
+
     				// change copied node
-    				std::cout << "copied node change" << std::endl;
-    				// TODO change inneriterator to iterator
-    				for (sequence<T>::InnerIterator iter = (*ptrSeq).ibegin(); iter!=(*ptrSeq).iend(); ++iter) {
-    					// TODO problem: changes more than one node with same key as node2Edit
-    					if ( **iter == *chNode) {
-    						(*iter)->setKey(crArg);
+    				for (sequence<T>::Iterator iter = (*ptrSeq).begin(); iter!=(*ptrSeq).end(); ++iter) {
+    					if ( *iter.getCurrentLeaf() == *chNode && ui_leafNo == iter.ui_leafNo) {
+    						iter.getCurrentLeaf()->setKey(crArg);
     					}
     				}
     			} else {
     				// change node directly
-    				std::cout << "direct node change" << std::endl;
     				chNode->setKey(crArg);
     			}
     		}
@@ -121,6 +117,7 @@ private:
     private:
     	sequence<T>* ptrSeq;
     	Node* chNode;
+    	unsigned ui_leafNo;
 	};
 
 	class InnerIterator {
@@ -166,8 +163,9 @@ private:
 public:
 	// public iterators
 	class Iterator {
+		friend Dummy& Dummy::operator=(const T& crArg);
 	public:
-		Iterator(Node* elem, sequence* sequence) : stack(), seq(sequence) {
+		Iterator(Node* elem, sequence* sequence) : stack(), seq(sequence), ui_leafNo(0) {
     		buildStack(elem);
     	}
     	friend bool operator!=(const Iterator& crI1, const Iterator& crI2) {
@@ -181,6 +179,7 @@ public:
 				buildStack(tmp->getRight());
     		}
     		while (!stack.empty() && stack.top()->getKey() == 0);
+    		++ui_leafNo;
 
 			// TODO remove or complete
 //    		Node* tmp = stack.top();
@@ -201,7 +200,7 @@ public:
 			return *this;
     	}
     	Dummy operator*() {
-    		return Dummy(seq, stack.top());
+    		return Dummy(seq, stack.top(), ui_leafNo);
     	}
     	Node* getNode() {
     		return stack.top();
@@ -214,11 +213,15 @@ public:
     			elem = elem->getLeft();
     		}
     	}
+    	Node* getCurrentLeaf() {
+    		return stack.top();
+    	}
 
 	protected:
     	std::stack<Node*> stack;
 	private:
     	sequence* seq;
+    	unsigned ui_leafNo;
 	};
 
 	class ConstIterator : public Iterator {
@@ -235,7 +238,7 @@ public:
 
 	class ReverseIterator {
 	public:
-		ReverseIterator(Node* elem, sequence* sequence) : stack(), seq(sequence) {
+		ReverseIterator(Node* elem, sequence* sequence) : stack(), seq(sequence), ui_leafNo(sequence->size()-1) {
     		buildStack(elem);
     	}
     	friend bool operator!=(const ReverseIterator& crI1, const ReverseIterator& crI2) {
@@ -248,10 +251,11 @@ public:
 				buildStack(tmp->getLeft());
     		}
     		while (!stack.empty() && stack.top()->getKey() == 0);
+    		--ui_leafNo;
 			return *this;
     	}
     	Dummy operator*() {
-    		return Dummy(seq, stack.top());
+    		return Dummy(seq, stack.top(), ui_leafNo);
     	}
 
 	private:
@@ -266,6 +270,7 @@ public:
     	std::stack<Node*> stack;
 	private:
     	sequence* seq;
+    	unsigned ui_leafNo;
 	};
 
 	class ConstReverseIterator : public ReverseIterator {
@@ -330,6 +335,14 @@ public:
 		return m_Root == 0;
 	}
 
+	unsigned size() {
+		unsigned res = 0;
+		for (Iterator i = begin(); i!=end(); ++i) {
+			++res;
+		}
+		return res;
+	}
+
 	// TODO remove after tests
 	void printCounter() {
 		for(typename sequence<T>::InnerIterator iter = ibegin(); iter != iend(); ++iter) {
@@ -342,7 +355,6 @@ public:
 private:
 	// TODO iterativ?
 	void copyNodes(sequence<T>* seq) {
-//		std::cout << "copyNodes active!" << std::endl;
 		seq->m_Root = copyNode(this->m_Root);
 		seq->increaseCounter();
 	}
