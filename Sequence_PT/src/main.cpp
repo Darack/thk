@@ -69,11 +69,4 @@ int main() {
 	// muss die gleiche Ausgabe wie 2 Zeilen
 	// zuvor erzeugen
 	cout << s2 << endl;
-
-	cout << "new stuff here... " << endl;
-	sequence<char> t5 = s2 + s1;
-	for (sequence<char>::Iterator iter = t5.begin(); iter!=t5.end(); ++iter) {
-		*iter = 'o';
-	}
-	cout << t5 << endl;
 }
