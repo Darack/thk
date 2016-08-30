@@ -3,7 +3,6 @@
 
 using namespace std;
 
-
 template<class T>
 void test(sequence<T> x,const T& a) {
 	//trotz Call-by-value keine Kopie des aktuellen Parameters erzeugen,

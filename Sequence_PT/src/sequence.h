@@ -92,6 +92,7 @@ private:
     		return os;
     	}
 
+    	// TODO fix iterator not working after write
     	Dummy& operator=(const T& crArg) {
     		// no self assignment
     		if (*chNode->getKey() != crArg) {
