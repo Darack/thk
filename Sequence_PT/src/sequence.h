@@ -81,6 +81,7 @@ private:
     	Node* m_Right;
 	};
 
+	// TODO namen ändern?
 	class Dummy {
 		friend class sequence;
     public:
@@ -179,24 +180,10 @@ public:
 				stack.pop();
 				buildStack(tmp->getRight());
     		}
+
+    		// TODO was passiert hier?
     		while (!stack.empty() && stack.top()->getKey() == 0);
     		++ui_leafNo;
-
-			// TODO remove or complete
-//    		Node* tmp = stack.top();
-//    		buildStack(tmp->getRight());
-//    		std::cout << "stack.size()" << stack.size() << std::endl;
-//			if (stack.top() == tmp) {
-//				stack.pop();
-//				std::cout << std::endl << "tmp: " << tmp << std::endl;
-//				if (stack.empty())
-//					std::cout << "stack.top() == 0" << std::endl;
-//				std::cout << "stack.top(): " << stack.top() << std::endl;
-//				std::cout << "stack.top()->getRight(): " << stack.top()->getRight() << std::endl;
-//				if ( stack.top() && (stack.top()->getRight() == tmp) ) {
-//					stack.pop();
-//				}
-//			}
 
 			return *this;
     	}
@@ -345,6 +332,7 @@ public:
 	}
 
 	// TODO remove after tests
+	// TODO oder drinlassen für kelb?
 	void printCounter() {
 		for(typename sequence<T>::InnerIterator iter = ibegin(); iter != iend(); ++iter) {
 			std::cout << (*iter)->getCnt();
@@ -354,7 +342,6 @@ public:
 	}
 
 private:
-	// TODO iterativ?
 	void copyNodes(sequence<T>* seq) {
 		seq->m_Root = copyNode(this->m_Root);
 		seq->increaseCounter();
