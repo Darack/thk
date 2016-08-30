@@ -59,7 +59,7 @@ int main() {
 	// jetzt muss eine eigenständige Kopie für s2 erzeugt
 	// werden, da die Elemente von s2 und s1 verwendet
 	// werden
-	*i2 = 'X';
+	*i2 = 'M';
 	cout << s1 << endl;
 	cout << s2 << endl;
 
