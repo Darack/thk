@@ -44,7 +44,7 @@ int main() {
 	cout << (s2+s2) << endl;
 
 	sequence<char>::Iterator i = s1.begin();
-	++i;
+	i++;
 	// keine Kopie von s1 erzeugen, da alle Elemente
 	// ausschließlich von s1 benutzt werden (erkennbar
 	// durch Referenzzählung)
@@ -55,7 +55,7 @@ int main() {
 	s2 = s1;
 
 	sequence<char>::ReverseIterator i2 = s2.rbegin();
-	++i2;
+	i2++;
 	// jetzt muss eine eigenständige Kopie für s2 erzeugt
 	// werden, da die Elemente von s2 und s1 verwendet
 	// werden

@@ -132,7 +132,7 @@ private:
     		buildStack(pElem);
     	}
 
-    	InnerIterator operator++() {
+    	InnerIterator& operator++() {
     		Node* tmp = m_Stack.top();
 			m_Stack.pop();
 			buildStack(tmp->getRight());
@@ -171,7 +171,7 @@ public:
     	friend bool operator!=(const Iterator& crI1, const Iterator& crI2) {
     		return crI1.m_Stack!=crI2.m_Stack;
     	}
-    	Iterator operator++() {
+    	Iterator& operator++() {
     		do {
 				Node* tmp = m_Stack.top();
 				m_Stack.pop();
@@ -180,6 +180,11 @@ public:
 
     		++m_uiLeafNo;
 			return *this;
+    	}
+    	Iterator operator++(int) {
+    		Iterator tmp(*this);
+    		operator++();
+			return tmp;
     	}
     	SeqHelper operator*() {
     		return SeqHelper(m_pSeq, m_Stack.top(), m_uiLeafNo);
@@ -207,9 +212,6 @@ public:
 	public:
 		ConstIterator(Node* elem): Iterator(elem, 0) {}
 
-		friend bool operator!=(const ConstIterator& crI1, const ConstIterator& crI2) {
-    		return crI1.m_Stack!=crI2.m_Stack;
-    	}
 		const T& operator*() {
 			return *Iterator::m_Stack.top()->getKey();
 		}
@@ -223,7 +225,7 @@ public:
     	friend bool operator!=(const ReverseIterator& crI1, const ReverseIterator& crI2) {
     		return crI1.m_Stack!=crI2.m_Stack;
     	}
-    	ReverseIterator operator++() {
+    	ReverseIterator& operator++() {
     		do {
 				Node* tmp = m_Stack.top();
 				m_Stack.pop();
@@ -232,6 +234,11 @@ public:
 
     		--m_uiLeafNo;
 			return *this;
+    	}
+    	ReverseIterator operator++(int) {
+    		ReverseIterator tmp(*this);
+    		operator++();
+			return tmp;
     	}
     	SeqHelper operator*() {
     		return SeqHelper(m_pSeq, m_Stack.top(), m_uiLeafNo);
@@ -256,9 +263,6 @@ public:
 	public:
 		ConstReverseIterator(Node* elem): ReverseIterator(elem, 0) {}
 
-		friend bool operator!=(const ConstReverseIterator& crI1, const ConstReverseIterator& crI2) {
-    		return crI1.m_Stack!=crI2.m_Stack;
-    	}
 		const T& operator*() {
 			return *ReverseIterator::m_Stack.top()->getKey();
 		}
